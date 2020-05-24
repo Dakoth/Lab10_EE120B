@@ -1,0 +1,45 @@
+
+//ThreeLEDSM updated 
+enum TL_States { TL_Start, A_TL, B_TL, C} TL_state;
+void TL_Tick() {
+	switch(TL_state) {
+		case TL_Start:
+			TL_state = A_TL;
+			//i = 0;
+			//threeLEDs = arr[i]; //displays bit 1 and then bit 2, in this config
+			//i++;
+			break;
+
+		case A_TL:
+			TL_state = B_TL;
+			break;
+
+		case B_TL:
+			TL_state = C;
+			break;
+
+		case C:
+			TL_state = A_TL;
+			break;
+
+		default:
+			TL_state = TL_Start;
+			break;
+	}
+
+	switch(TL_state) {
+		case A_TL:
+			threeLEDs = 0x01;
+			break;
+
+		case B_TL:
+			threeLEDs = 0x02;
+			break;
+
+		case C:
+			threeLEDs = 0x04;
+			break;
+		default:
+			break;
+	}
+}
