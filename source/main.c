@@ -8,12 +8,13 @@
  *	code, is my own original work.
  */
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
 
 //TIMER STUFF
-//
+///////////////////////////////////////////////////////////////////////
 volatile unsigned char TimerFlag = 0; //stuff added 
 
 unsigned long _avr_timer_M = 1;
@@ -67,11 +68,8 @@ void TimerSet(unsigned long M) {
 }
 
 
-
-
-
-/////////////////////////
-
+//////////////////////////////////////////////////////
+//STATE STUFF
 
 unsigned char threeLEDs;	//shared variables with combineLEDs
 unsigned char blinkingLED;
@@ -179,10 +177,12 @@ int main(void) {
 	TL_state = TL_Start;
 	BL_state = BL_Start;
 	CL_state = CL_Start;
-    /* Insert your solution below */
 	threeLEDs = 0;
 	blinkingLED = 0;
 	tmpB = 0x00;
+
+	TimerSet(1000);
+	TimerOn();
     while (1) {
 
 	    TL_Tick();
@@ -190,6 +190,9 @@ int main(void) {
 	    CL_Tick();
 
 	    PORTB = tmpB;
+
+	    while(!TimerFlag) {}
+	    TimerFlag = 0;
     }
     return 1;
 }
