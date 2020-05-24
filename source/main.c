@@ -219,6 +219,74 @@ void SP_Tick() {
 
 
 
+unsigned char freq; // freq initally 2 
+//Frequency SM
+enum FR_States { FR_Start, Wait, Inc, Dec} FR_state; 
+
+void FR_Tick() {
+	switch(FR_state) {
+		case FR_Start:
+			FR_state = Wait;
+			freq = 2;
+			break;
+
+		case Wait:
+			if ((tmpA & 0x03) == 0x01) { 	//IF PA0 is on
+				FR_state = Inc;
+
+				if (freq < 10) { freq++; } //Not sure what to set max to 
+			}
+			else if ((tmpA & 0x03) == 0x02) { //PA1 is on
+				FR_state = Dec;
+
+				if (freq > 0) {freq--;} //probably needed 
+			}
+			else {
+				FR_state = Wait;
+			}
+			break;
+
+		case Inc:
+			if ((tmpA & 0x03) == 0x01) { 	//IF PA0 is on
+				FR_state = Inc;
+				//sound = !sound; //swaps betwen 0 and 1, GENERATING SOUND
+			}
+			else {
+				FR_state = Wait;
+			}
+			break;
+			
+		case Dec: 
+			if ((tmpA & 0x03) == 0x02) { 	//IF PA1 is on
+				FR_state = Dec;
+			}
+			else {
+				FR_state = Wait;
+			}
+			break;
+			 
+		default:
+			FR_state = Wait;
+			break;
+	}
+
+	switch (SP_state) {
+		case Wait: 
+			//sound = 0;
+			break;
+
+		case Inc:
+			break;
+
+		case Dec: 
+			break;
+		default: 
+			break;
+	}
+}
+
+
+
 
 int main(void) {
     /* Insert DDR and PORT initializations */
@@ -228,17 +296,21 @@ int main(void) {
 	unsigned long TL_elapsedTime = 0;
 	unsigned long BL_elapsedTime = 0;
 	unsigned long CL_elapsedTime = 0;
-	unsigned long SP_elapsedTime = 0;
+	unsigned long SP_elapsedTime = 0; 
+	unsigned long FR_elapsedTime = 0;
 	const unsigned long timerPeriod = 1;
 
 	TL_state = TL_Start;
 	BL_state = BL_Start;
 	CL_state = CL_Start;
 	SP_state = SP_Start;
+	FR_state = FR_Start;
 	//threeLEDs = arr[i];
 	//blinkingLED = 0;
 	tmpA = 0;
 	tmpB = 0x00;
+
+	freq = 2;
 
 	TimerSet(timerPeriod);
 	TimerOn();
@@ -253,12 +325,17 @@ int main(void) {
 		 BL_Tick();
 		 BL_elapsedTime = 0;
 	    }
-	    if (SP_elapsedTime >= 2) { // 2 ms
+	    if (SP_elapsedTime >= freq) { // orig 2 ms, Changes as freq timer changes
 		SP_Tick();
 		SP_elapsedTime = 0;
 	    }
 
-	    if (CL_elapsedTime >= 2) {//Need to change this to 2 as well, to acc for speaker
+	    if (FR_elapsedTime >= 50) {
+		FR_Tick();
+		FR_elapsedTime = 0;
+	    }
+
+	    if (CL_elapsedTime >= 1) {//Need to change too, to acc for speaker
 	    	CL_Tick();
 		CL_elapsedTime = 0;
 	    }
@@ -271,6 +348,7 @@ int main(void) {
 	    BL_elapsedTime += timerPeriod;
 	    CL_elapsedTime += timerPeriod;
 	    SP_elapsedTime += timerPeriod;
+	    FR_elapsedTime += timerPeriod;
 	
     }
     return 1;
